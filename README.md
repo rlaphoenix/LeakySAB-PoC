@@ -1,7 +1,7 @@
 # LeakySAB-PoC
 
 This is a PoC of 'LeakySAB', a vulnerability allowing extraction of usenet provider password from a SABnzbd instance.
-I'm not the first to encounter this vulnerability, but I semed to have been the first to report it to the SABnzbd team.
+I'm not the first to encounter this vulnerability, but I seemed to have been the first to report it to the SABnzbd team.
 
 It is supported and tested on all versions of `2.x` and `3.x` and has not yet been patched. It has not been tested on
 version `1.x`, but likely works.
