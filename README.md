@@ -1,13 +1,15 @@
 # LeakySAB-PoC
 
 This is a PoC of 'LeakySAB', a vulnerability allowing extraction of usenet provider password from a SABnzbd instance.
-I'm no doubt not the first to encounter this vulnerability but I'm likely the first to report it to the SABnzbd team.
+I'm not the first to encounter this vulnerability, but I semed to have been the first to report it to the SABnzbd team.
 
 It is supported and tested on all versions of `2.x` and `3.x` and has not yet been patched. It has not been tested on
 version `1.x`, but likely works.
 
 The PoC was privately sent to the SABnzbd team through email and the topic was brought up on GitHub Issues, without
-sharing much details publicly. See https://github.com/sabnzbd/sabnzbd/issues/2455
+sharing much details publicly. See https://github.com/sabnzbd/sabnzbd/issues/2455. The PoC was released as it looks
+as if the team knew of the vulnerability at it's core, but would rather keep it unpatched than add a slight inconvenience
+to the user, which is astonishingly ridiculous...
 
 ![image](https://user-images.githubusercontent.com/17136956/218492530-b82bbac5-5aaa-4a61-b0e4-502b71b59855.png)
 
