@@ -13,6 +13,23 @@ to the user, which is astonishingly ridiculous...
 
 ![image](https://user-images.githubusercontent.com/17136956/218492530-b82bbac5-5aaa-4a61-b0e4-502b71b59855.png)
 
+## Mitigation
+
+There's currently no way to truly prevent this issue. As long as someone can get onto your Web UI, this
+exploit will be possible. However, there are some steps you should take to protect yourself as much as possible.
+
+Don't open your SABnzbd port (port forward) and add authentication to your SABnzbd Web UI. I recommend against
+using the username 'admin' or such. I personally use a completely random string for both the username and password.
+
+This will reduce possible attacks to only devices on your local network. However, it's still not impenetrable from
+malware, threat actors getting your SABnzbd API Key, running from a public network or unsafe network, intranet access
+attacks (like breaching a personal home/server VPN), or another SABnzbd exploit to bypass auth on SABnzbd Web UIs.
+
+Of course, these listed threats are very niche and unlikely to happen, and generally out of the scope of SABnzbd.
+However, I completely refute the SABnzbd teams decision to intentionally leave such a blatant exploit possible when
+a simple fix could be made. E.g., prevent the host name from being altered once added, or have the user re-enter
+the password if they need to change the host.
+
 ## Usage
 
 Run `$ python main.py`, this will start a TCP server binded to all available interfaces, on port 8119.
@@ -24,7 +41,7 @@ Run `$ python main.py`, this will start a TCP server binded to all available int
 5. Change the Port to 8119 and make sure the "SSL" check box is unticked.
 6. Click the Test Server button. Look at your server's terminal and you should see the Username and Password.
 
-## API
+### API
 
 A Web Server allowing you to run the exploit by providing the hostname and port of a SABnzbd instance is
 available in [api.py](api.py).
@@ -44,7 +61,7 @@ CREATE TABLE "credentials" (
 );
 ```
 
-## Troubleshooting
+### Troubleshooting
 
 Before continuing these troubleshooting steps, make sure you have opened the port `8119` before continuing.
 You can check if the port is opened by going to https://canyouseeme.org on the server to test `8119`.
