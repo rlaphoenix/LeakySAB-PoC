@@ -26,10 +26,14 @@ def start_nntp_server(host: str, port: int) -> None:
     while True:
         conn, addr = s.accept()
         with conn:
-            conn.send(b"\x00")  # dunno but it works
-            data = conn.recv(1024)
-            if not data:
-                break
+            data = None
+            while not data:
+                # sometimes needs a ton of tries, maybe even enough to break the connection
+                # why? I have no idea
+                conn.send(b"\x00")  # dunno but it works
+                data = conn.recv(1024)
+                if data:
+                    break
             try:
                 data = data.decode().strip()
                 username = data.split(" ", maxsplit=2)[-1]
