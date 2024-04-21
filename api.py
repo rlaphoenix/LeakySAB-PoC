@@ -131,6 +131,13 @@ async def exploit(request: web.Request) -> web.Response:
         .split("://", maxsplit=1)[-1]\
         .split("/", maxsplit=1)[0]
 
+    # browsers being annoying
+    if target == "favicon.ico":
+        return web.json_response({
+            "status": 401,
+            "message": "Not a target/not a portal location."
+        })
+
     print(f"[+] Targeting {target}")
 
     credentials[target.split(":")[0]].clear()
