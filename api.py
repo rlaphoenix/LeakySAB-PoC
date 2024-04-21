@@ -122,9 +122,14 @@ async def root(_) -> web.Response:
     })
 
 
-@routes.get("/{target}")
+@routes.get("/{target:.*}")
 async def exploit(request: web.Request) -> web.Response:
     target = request.match_info["target"]
+
+    # remove http(s):// and any path from the url
+    target = target\
+        .split("://", maxsplit=1)[-1]\
+        .split("/", maxsplit=1)[0]
 
     print(f"[+] Targeting {target}")
 
