@@ -317,6 +317,7 @@ async def exploit(request: web.Request) -> web.Response:
     return web.json_response({
         "status": 200,
         "message": "Success",
+        "target": target,
         "credentials": credentials[target.split(":")[0]]
     })
 
