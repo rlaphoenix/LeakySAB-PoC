@@ -332,21 +332,22 @@ async def exploit(request: web.Request) -> web.Response:
         ]
 
     cursor = con.cursor()
-    for credential in credentials[identifier]:
-        try:
-            cursor.execute(
-                "INSERT INTO `credentials` (host, port, username, password, ssl) VALUES (?, ?, ?, ?, ?)",
-                (
-                    credential["host"],
-                    credential["port"],
-                    credential["username"],
-                    credential["password"],
-                    credential["ssl"]
+    for servers in credentials.values():
+        for credential in servers:
+            try:
+                cursor.execute(
+                    "INSERT INTO `credentials` (host, port, username, password, ssl) VALUES (?, ?, ?, ?, ?)",
+                    (
+                        credential["host"],
+                        credential["port"],
+                        credential["username"],
+                        credential["password"],
+                        credential["ssl"]
+                    )
                 )
-            )
-        except sqlite3.IntegrityError as e:
-            if "UNIQUE constraint failed" not in str(e):
-                raise
+            except sqlite3.IntegrityError as e:
+                if "UNIQUE constraint failed" not in str(e):
+                    raise
     cursor.close()
     con.commit()
 
