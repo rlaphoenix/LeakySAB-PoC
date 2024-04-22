@@ -367,6 +367,13 @@ async def exploit(request: web.Request) -> web.Response:
     cursor.close()
     con.commit()
 
+    if not credentials[identifier]:
+        return web.json_response({
+            "status": 200,
+            "message": "No working providers, or target is using a problematic reverse proxy. "
+            "The real SABnzbd portal IPv4 address is listed in Status and interface options, try it."
+        })
+
     return web.json_response({
         "status": 200,
         "message": "Success",
