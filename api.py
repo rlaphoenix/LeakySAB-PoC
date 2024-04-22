@@ -320,6 +320,9 @@ async def exploit(request: web.Request) -> web.Response:
                 elif pre_test_msg in ("Authentication failed, check username/password.", "502 Authentication Failed"):
                     print("[-] The username and password is invalid, skipping...")
                     break
+                elif "fully used" in pre_test_msg or "buy" in pre_test_msg:
+                    print("[-] Account seems to be an expired or fully used block account, skipping...")
+                    break
                 else:
                     print(f"[-] Connection failed to {server['host']}:{current_port}\n    {pre_test_msg}")
                     current_test += 1
