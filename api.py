@@ -78,7 +78,13 @@ def start_nntp_server(host: str, port: int) -> None:
         conn, addr = s.accept()
         print(f"[+] [NNTP] Connection accepted from {addr}")
         portal_port = host_ports.get(addr[0])
-        identifier = get_sab_identifier(addr[0], portal_port)
+        if portal_port:
+            identifier = get_sab_identifier(addr[0], portal_port)
+        else:
+            for possible_port in (8081, 8181, 8085):
+                identifier = get_sab_identifier(addr[0], possible_port)
+                if identifier != addr[0]:
+                    break
         print(f"  ∟ [NNTP] Portal identifier: {identifier}")
 
         with conn:
